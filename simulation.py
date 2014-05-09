@@ -22,7 +22,7 @@ class Layout():
     arrange_candidate = []
 
     def __init__(self, pages):
-        self.pages= pages
+        self.pages = pages
 
     def show_window(self):
         root = Tk()
@@ -30,7 +30,6 @@ class Layout():
         canvas.pack()
         root.mainloop()
         self._arrange(self.data, Rect(0, 0, WIDTH, HEIGHT))
-
 
     def _arrange(self, rect, rest):
         if len(rest) == 0:
