@@ -51,35 +51,16 @@ class PagesTest(unittest.TestCase):
 
 
 
-# class SimulationTest(unittest.TestCase):
-#     def setUp(self):
-#         self.layout = simulation.Layout()
-#         data = {
-#             'image': [
-#                 LayoutTyp([10], 'image'),
-#                 LayoutType([8], 'image'),
-#                 LayoutType([6], 'image'),
-#                 LayoutType([4], 'image'),
-#                 LayoutType([2], 'image'),
-#             ],
-#             'text': [
-#                 LayoutType([9], 'text'),
-#                 LayoutType([7], 'text'),
-#                 LayoutType([5], 'text'),
-#                 LayoutType([3], 'text'),
-#                 LayoutType([1], 'text'),
-#             ]
-#
-#         }
-#         pages = Pages(data)
-#         self.layout.set_data(data)
-#
-#     def testSetData(self):
-#         self.layout.data['image'][0].priority
-#
-#     def testPrioritySum(self):
-#         self.assertEqual(self.layout.priority_sum(self.layout.data), 55)
-#
+class SimulationTest(unittest.TestCase):
+    def setUp(self):
+        pages = Pages(DATA)
+        self.layout = simulation.Layout(pages)
+
+    def testSetData(self):
+        target = self.layout.pages.data['image'][0].priorities
+        self.assertEqual(target, [10])
+
+
 #
 #     def testSetIdealArea(self):
 #         self.layout._set_ideal_area()

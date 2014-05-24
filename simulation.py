@@ -18,7 +18,6 @@ class Rect:
 
 
 class Layout():
-    data = []
     arrange_candidate = []
 
     def __init__(self, pages):
@@ -29,7 +28,12 @@ class Layout():
         canvas = Canvas(root, width=WIDTH, height=HEIGHT)
         canvas.pack()
         root.mainloop()
-        self._arrange(self.data, Rect(0, 0, WIDTH, HEIGHT))
+        self._arrange(self.pages, Rect(0, 0, WIDTH, HEIGHT))
+
+    def arrange(self, pages, rect):
+        top = pages.get_top_1()
+        _arrange(top, rect)
+
 
     def _arrange(self, rect, rest):
         if len(rest) == 0:
