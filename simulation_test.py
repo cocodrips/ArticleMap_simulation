@@ -21,9 +21,8 @@ class PagesTest(unittest.TestCase):
         self.pages = Pages(DATA)
 
     def testSort(self):
-        print [page for page in self.pages.page_set]
-        self.assertEqual(self.pages.page_set[0][0].priority, 10)
-        self.assertEqual(self.pages.page_set[-1][0].priority, 1)
+        self.assertEqual(self.pages.page_sets[0][0].priority, 10)
+        self.assertEqual(self.pages.page_sets[-1][0].priority, 1)
 
     def testPrioritySum(self):
         self.assertEqual(self.pages.priority_sum, 55)

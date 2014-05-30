@@ -49,17 +49,19 @@ class Page:
 
 import itertools
 class Pages:
-    page_set = []
+    page_sets = []
+    setted_pages = []
+
 
     def __init__(self, data):
-        self.page_set = [[d] for d in data]
-        self.page_set.sort(cmp=self.page_cmp)
-        self.page_set.reverse()
+        self.page_sets = [[d] for d in data]
+        self.page_sets.sort(cmp=self.page_cmp)
+        self.page_sets.reverse()
 
 
     @property
     def priority_sum(self):
-        return sum([sum([page.priority for page in pages]) for pages in self.page_set])
+        return sum([sum([page.priority for page in pages]) for pages in self.page_sets])
 
     @property
     def rest(self):
@@ -69,7 +71,7 @@ class Pages:
         Returns: Array
         """
         array = []
-        for data in self.page_set.values():
+        for data in self.page_sets.values():
             for d in data:
                 if not d.rect:
                     array.append(d)
@@ -84,25 +86,25 @@ class Pages:
         s = self.priority_sum
         all_area = width * height
 
-        for data in self.page_set.values():
+        for data in self.page_sets.values():
             for d in data:
                 d.ideal_area = sum(d.priority) * all_area // s
 
     def get_top_1(self):
         for t in self.types:
-            if self.page_set[t]:
-                return self.page_set[t][0]
+            if self.page_sets[t]:
+                return self.page_sets[t][0]
         return None
 
     def get_optimum_set(self, rect):
         s = rect.width * rect.height
         candidate = None
-        max_length = max([len(self.page_set[t]) for t in self.types])
+        max_length = max([len(self.page_sets[t]) for t in self.types])
         num = 1
         while not candidate and num < max_length:
             for t in self.types:
-                if num < len(self.page_set[t]):
-                    candidate = self._create_sets(self.page_set[t], num, s)
+                if num < len(self.page_sets[t]):
+                    candidate = self._create_sets(self.page_sets[t], num, s)
             num += 1
 
         if not candidate:
