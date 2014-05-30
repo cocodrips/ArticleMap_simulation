@@ -25,6 +25,9 @@ class PagesTest(unittest.TestCase):
         self.assertEqual(self.pages.page_set[0][0].priority, 10)
         self.assertEqual(self.pages.page_set[-1][0].priority, 1)
 
+    def testPrioritySum(self):
+        self.assertEqual(self.pages.priority_sum, 55)
+
     # def testSetIdealArea(self):
     #     self.pages.set_ideal_area(100, 100)
     #     self.assertEqual(self.pages.page_set['image'][0].ideal_area, 1818)

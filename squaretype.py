@@ -59,11 +59,7 @@ class Pages:
 
     @property
     def priority_sum(self):
-        p_sum = 0
-        for data in self.page_set.values():
-            for d in data:
-                p_sum += sum(d.priority)
-        return p_sum
+        return sum([sum([page.priority for page in pages]) for pages in self.page_set])
 
     @property
     def rest(self):
