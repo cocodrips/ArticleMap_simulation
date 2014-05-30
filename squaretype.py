@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from rect_type import rect_types
+
 IMAGE_RATIO = 1.3
+
 
 class Rect:
     x = 0
@@ -13,6 +15,7 @@ class Rect:
         self.y = y
         self.width = width
         self.height = height
+
 
 class Page:
     rect = None
@@ -28,7 +31,6 @@ class Page:
         return unicode("<Page priority:{0}>".format(self.priority))
 
 
-import itertools
 class Pages:
     page_sets = []
     fixed_pages = []
@@ -57,19 +59,22 @@ class Pages:
         """
         top = None
         for page_set in self.page_sets:
-            if not top or self.priority_sum(top) <  self.priority_sum(page_set):
+            if not top or self.priority_sum(top) < self.priority_sum(page_set):
                 top = page_set
         return top
 
     def get_optimum_set(self, rect):
+        # TODO: 組み合わせも可にする
         s = rect.width * rect.height
 
-        # def area_sum(page_set):
-        #     return sum()
-        #
-        # for page_set in self.page_sets:
-
-
+        match = 0
+        optimum_set = None
+        for page_set in self.page_sets:
+            area_sum = sum([page.ideal_area for page in page_set])
+            if not optimum_set or abs(s - area_sum) < abs(s - match):
+                optimum_set = page_set
+                match = area_sum
+        return optimum_set
 
     # 1
     def set_ideal_area(self, width, height):

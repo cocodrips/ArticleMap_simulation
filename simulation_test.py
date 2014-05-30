@@ -31,6 +31,9 @@ class PagesTest(unittest.TestCase):
         self.pages.set_ideal_area(100, 100)
         self.assertEqual(self.pages.page_sets[0][0].ideal_area, 1818)
         self.assertEqual(self.pages.page_sets[-1][0].ideal_area, 181)
+        target = [self.pages.page_sets[i][0].ideal_area for i in xrange(10)]
+        expected = [1818, 1636, 1454, 1272, 1090, 909, 727, 545, 363, 181]
+        self.assertEqual(target, expected)
 
     def testGetTop1(self):
         target = self.pages.get_top_1()
@@ -38,17 +41,17 @@ class PagesTest(unittest.TestCase):
 
     def testGroupingPageSet(self):
         self.pages.grouping_page_sets()
+        print self.pages.page_sets
         self.assertEqual(len(self.pages.page_sets), 4)
 
-    #
-    # def testGetOptimumSet(self):
-    #     self.pages.set_ideal_area(100,100)
-    #     target = self.pages.get_optimum_set(Rect(0, 0, 20, 20))
-    #     self.assertEqual(target[0].priorities, [3])
-    #     target = self.pages.get_optimum_set(Rect(0, 0, 50, 70))
-    #     self.assertEqual([t.priorities for t in target], [[9], [7], [5]])
+    def testGetOptimumSet(self):
+        self.pages.set_ideal_area(100,100)
+        target = self.pages.get_optimum_set(Rect(0, 0, 20, 20))
+        self.assertEqual(self.pages.priority_sum(target), 2)
 
-
+        self.pages.grouping_page_sets()
+        target = self.pages.get_optimum_set(Rect(0, 0, 50, 50))
+        self.assertEqual(self.pages.priority_sum(target), 12)
 
 
 class SimulationTest(unittest.TestCase):
