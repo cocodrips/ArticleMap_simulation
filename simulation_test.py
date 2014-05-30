@@ -25,19 +25,21 @@ class PagesTest(unittest.TestCase):
         self.assertEqual(self.pages.page_sets[-1][0].priority, 1)
 
     def testPrioritySum(self):
-        self.assertEqual(self.pages.priority_sum, 55)
+        self.assertEqual(self.pages.priority_sum(self.pages.page_sets[0]), 10)
 
-    # def testSetIdealArea(self):
-    #     self.pages.set_ideal_area(100, 100)
-    #     self.assertEqual(self.pages.page_set['image'][0].ideal_area, 1818)
-    #     self.assertEqual(self.pages.page_set['text'][-1].ideal_area, 181)
-    #     # for data in self.pages.data.values():
-    #     #     for d in data:
-    #     #         print d.priorities, d.ideal_area
-    #
-    # def testGetTop1(self):
-    #     target = self.pages.get_top_1()
-    #     self.assertEqual(target.priorities, [10])
+    def testSetIdealArea(self):
+        self.pages.set_ideal_area(100, 100)
+        self.assertEqual(self.pages.page_sets[0][0].ideal_area, 1818)
+        self.assertEqual(self.pages.page_sets[-1][0].ideal_area, 181)
+
+    def testGetTop1(self):
+        target = self.pages.get_top_1()
+        self.assertEqual(self.pages.priority_sum(target), 10)
+
+    def testGroupingPageSet(self):
+        self.pages.grouping_page_sets()
+        self.assertEqual(len(self.pages.page_sets), 4)
+
     #
     # def testGetOptimumSet(self):
     #     self.pages.set_ideal_area(100,100)
@@ -45,9 +47,6 @@ class PagesTest(unittest.TestCase):
     #     self.assertEqual(target[0].priorities, [3])
     #     target = self.pages.get_optimum_set(Rect(0, 0, 50, 70))
     #     self.assertEqual([t.priorities for t in target], [[9], [7], [5]])
-    #
-    # def testGetRest(self):
-    #     print self.pages.get_rest()
 
 
 

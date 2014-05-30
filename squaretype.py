@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
+from rect_type import rect_types
 IMAGE_RATIO = 1.3
-
-class RectType:
-    def __init__(self, ratio, min_align=1):
-        self.ratio = ratio
-        self.min_align = min_align
-
 
 class Rect:
     x = 0
@@ -20,24 +15,10 @@ class Rect:
         self.height = height
 
 class Page:
-    """
-    Page
-    """
-
-    rect = ''
-    ideal_area = ''
+    rect = None
+    ideal_area = 0
     priority = 0
     type = None
-
-    rect_types = {
-        'image': [
-            RectType(1.1, 1),
-            RectType(0.5, 2),
-            RectType(2.2, 2)],
-        'text': [
-            RectType(1.3, 1),
-            RectType(1.6, 2)]
-    }
 
     def __init__(self, priority, string):
         self.priority = priority
@@ -50,87 +31,72 @@ class Page:
 import itertools
 class Pages:
     page_sets = []
-    setted_pages = []
-
+    fixed_pages = []
 
     def __init__(self, data):
         self.page_sets = [[d] for d in data]
         self.page_sets.sort(cmp=self.page_cmp)
         self.page_sets.reverse()
 
-
-    @property
-    def priority_sum(self):
-        return sum([sum([page.priority for page in pages]) for pages in self.page_sets])
-
-    @property
-    def rest(self):
-        """
-        まだ高さが配置されていないデータを抽出
-
-        Returns: Array
-        """
-        array = []
-        for data in self.page_sets.values():
-            for d in data:
-                if not d.rect:
-                    array.append(d)
-        return array
+    def priority_sum(self, page_set):
+        return sum([page.priority for page in page_set])
 
     def page_cmp(self, x, y):
         return cmp(sum([page.priority for page in x]),
                    sum([page.priority for page in y]))
 
-
-    def set_ideal_area(self, width, height):
-        s = self.priority_sum
-        all_area = width * height
-
-        for data in self.page_sets.values():
-            for d in data:
-                d.ideal_area = sum(d.priority) * all_area // s
+    def fix(self, page):
+        """
+        Fixed pages set in fixed_pages[] from page_sets[]
+        """
+        pass
 
     def get_top_1(self):
-        for t in self.types:
-            if self.page_sets[t]:
-                return self.page_sets[t][0]
-        return None
+        """
+        Get page_set which have the highest priority
+        """
+        top = None
+        for page_set in self.page_sets:
+            if not top or self.priority_sum(top) <  self.priority_sum(page_set):
+                top = page_set
+        return top
 
     def get_optimum_set(self, rect):
         s = rect.width * rect.height
-        candidate = None
-        max_length = max([len(self.page_sets[t]) for t in self.types])
-        num = 1
-        while not candidate and num < max_length:
-            for t in self.types:
-                if num < len(self.page_sets[t]):
-                    candidate = self._create_sets(self.page_sets[t], num, s)
-            num += 1
 
-        if not candidate:
-            self.get_top_1()
-        return candidate
+        # def area_sum(page_set):
+        #     return sum()
+        #
+        # for page_set in self.page_sets:
 
-    def _create_sets(self, data, num, s):
+
+
+    # 1
+    def set_ideal_area(self, width, height):
+        total_priority = sum([self.priority_sum(page_set)
+                              for page_set in self.page_sets])
+        all_area = width * height
+
+        for page_set in self.page_sets:
+            for page in page_set:
+                page.ideal_area = page.priority * all_area // total_priority
+
+    def grouping_page_sets(self):
         """
-        面積Sに対して、
-        １番適した面積を探す
-        TODO:擬多項式時間
+        Create groups [1,2,3,4,5] -> [[1,2,3][4,5]]
         """
+        groups = []
+        for key in rect_types.keys():
+            pages = [page_set for page_set in self.page_sets if page_set[0].type == key]
 
-        candidate = None
-        candidate_area = 100000000000
-        combinations = itertools.combinations(data, num)
+            if len(pages) < 2:
+                # TODO: typeのpagesの数が2以下の場合どうする？
+                groups.append(pages)
+                continue
 
-        for combination in combinations:
-            area_sum = sum([c.ideal_area for c in combination])
-
-            if not candidate and area_sum < s:
-                return candidate
-
-            if area_sum >= s:
-                if area_sum - s < candidate_area - s:
-                    candidate = combination
-                    candidate_area = area_sum
-
-        return candidate
+            for i in xrange(0, len(pages), 2):
+                if i + 1 < len(pages):
+                    groups.append(pages[i] + pages[i+1])
+                else:
+                    groups[-1] += pages[i]
+        self.page_sets = groups
