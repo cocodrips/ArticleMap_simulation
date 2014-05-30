@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 IMAGE_RATIO = 1.3
-
 
 class RectType:
     def __init__(self, ratio, min_align=1):
@@ -19,9 +19,16 @@ class Rect:
         self.width = width
         self.height = height
 
+class Page:
+    """
+    Page
+    """
 
-class LayoutTypes:
-    types = ['image', 'text']
+    rect = ''
+    ideal_area = ''
+    priority = 0
+    type = None
+
     rect_types = {
         'image': [
             RectType(1.1, 1),
@@ -32,65 +39,74 @@ class LayoutTypes:
             RectType(1.6, 2)]
     }
 
-
-class LayoutType:
-    rect = ''
-    ideal_area = ''
-    vector4 = ''
-
-    def __init__(self, priorities, string):
-        self.priorities = priorities
+    def __init__(self, priority, string):
+        self.priority = priority
         self.type = string
-        self.rect_type = LayoutTypes().rect_types[string]
+
+    def __repr__(self):
+        return unicode("<Page priority:{0}>".format(self.priority))
 
 
 import itertools
-
-
 class Pages:
-    types = LayoutTypes().types
-    data = {}
+    page_set = []
 
-    def __init__(self, dict):
-        for t in self.types:
-            self.data[t] = dict[t]
-            self.sort(self.data[t])
+    def __init__(self, data):
+        self.page_set = [[d] for d in data]
+        self.page_set.sort(cmp=self.page_cmp)
+        self.page_set.reverse()
+
 
     @property
     def priority_sum(self):
         p_sum = 0
-        for data in self.data.values():
+        for data in self.page_set.values():
             for d in data:
-                p_sum += sum(d.priorities)
+                p_sum += sum(d.priority)
         return p_sum
 
-    def sort(self, page_set):
-        page_set.sort(cmp=lambda x, y: cmp(sum(x.priorities), sum(y.priorities)))
-        page_set.reverse()
+    @property
+    def rest(self):
+        """
+        まだ高さが配置されていないデータを抽出
+
+        Returns: Array
+        """
+        array = []
+        for data in self.page_set.values():
+            for d in data:
+                if not d.rect:
+                    array.append(d)
+        return array
+
+    def page_cmp(self, x, y):
+        return cmp(sum([page.priority for page in x]),
+                   sum([page.priority for page in y]))
+
 
     def set_ideal_area(self, width, height):
         s = self.priority_sum
         all_area = width * height
 
-        for data in self.data.values():
+        for data in self.page_set.values():
             for d in data:
-                d.ideal_area = sum(d.priorities) * all_area // s
+                d.ideal_area = sum(d.priority) * all_area // s
 
     def get_top_1(self):
         for t in self.types:
-            if self.data[t]:
-                return self.data[t][0]
+            if self.page_set[t]:
+                return self.page_set[t][0]
         return None
 
     def get_optimum_set(self, rect):
         s = rect.width * rect.height
         candidate = None
-        max_length = max([len(self.data[t]) for t in self.types])
+        max_length = max([len(self.page_set[t]) for t in self.types])
         num = 1
         while not candidate and num < max_length:
             for t in self.types:
-                if num < len(self.data[t]):
-                    candidate = self._create_sets(self.data[t], num, s)
+                if num < len(self.page_set[t]):
+                    candidate = self._create_sets(self.page_set[t], num, s)
             num += 1
 
         if not candidate:
@@ -98,6 +114,12 @@ class Pages:
         return candidate
 
     def _create_sets(self, data, num, s):
+        """
+        面積Sに対して、
+        １番適した面積を探す
+        TODO:擬多項式時間
+        """
+
         candidate = None
         candidate_area = 100000000000
         combinations = itertools.combinations(data, num)
@@ -114,10 +136,3 @@ class Pages:
                     candidate_area = area_sum
 
         return candidate
-
-
-
-
-
-
-

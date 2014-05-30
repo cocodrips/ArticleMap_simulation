@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from Tkinter import Canvas, Tk
-from squaretype import LayoutTypes, Rect
+from squaretype import Rect
 import math
 
 MARGIN = 5
 WIDTH = 1024
 HEIGHT = 768
-MIN_LENGTH = 100
+MIN_WIDTH = 100
+MIN_HEIGHT = 60
 
 
 class Rect:
@@ -32,7 +33,8 @@ class Layout():
 
     def arrange(self, pages, rect):
         top = pages.get_top_1()
-        _arrange(top, rect)
+        self._arrange_1(top)
+
 
 
     def _arrange(self, rect, rest):
@@ -43,20 +45,34 @@ class Layout():
             pass
 
         if len(rest) > 4:
+            top = pages.get_top_1()
             self.arrange_1(rect, rest)
 
         else:
             self.arrange_horizontal(rect, rest)
             self.arrange_vertical(rect, rest)
 
-    def _arrange_1(self, data, rect):
-        top = self._arrange_top_pages(data, rect)
+    def _arrange_1(self, rest, rect):
+        """
+        1. 左上に配置する
+        2. 右の残りスペースがMIN_WIDTH以下だったらたてにのばす
+        3. 下の残りのスペースがMIN_HEIGHT以下だった場合に面積を小さくする
+        4. 配置する
+        """
+
+        top = self._arrange_top_pages(rest, rect)
 
         rect_under = Rect(rect.x, rect.y + top.rect.height,
                           top.rect.width, rect.height - top.rect.height)
-
         rect_right = Rect(rect.x, rect.y + top.rect.height,
                           top.rect.width, rect.height - top.rect.height)
+
+
+
+
+
+        self._arrange()
+
 
     def _set_page(self, data, rect):
         if not data['image'] and not data['text']:
