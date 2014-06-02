@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import unittest
 import simulation
-from squaretype import Page, Pages, Rect
+import pages
+from squaretype import Page, Rect
 
 DATA = [
     Page(4, 'image'),
@@ -18,50 +20,47 @@ DATA = [
 
 class PagesTest(unittest.TestCase):
     def setUp(self):
-        self.pages = Pages(DATA)
+        self.page_sets = pages.init(DATA, 100, 100)
 
-    def testSort(self):
-        self.assertEqual(self.pages.page_sets[0][0].priority, 10)
-        self.assertEqual(self.pages.page_sets[-1][0].priority, 1)
+    def testInit(self):
+        self.assertEqual(self.page_sets[0][0].priority, 10)
+        self.assertEqual(self.page_sets[-1][0].priority, 1)
 
     def testPrioritySum(self):
-        self.assertEqual(self.pages.priority_sum(self.pages.page_sets[0]), 10)
+        self.assertEqual(pages.priority_sum(self.page_sets[0]), 10)
 
     def testSetIdealArea(self):
-        self.pages.set_ideal_area(100, 100)
-        self.assertEqual(self.pages.page_sets[0][0].ideal_area, 1818)
-        self.assertEqual(self.pages.page_sets[-1][0].ideal_area, 181)
-        target = [self.pages.page_sets[i][0].ideal_area for i in xrange(10)]
+        self.assertEqual(self.page_sets[0][0].ideal_area, 1818)
+        self.assertEqual(self.page_sets[-1][0].ideal_area, 181)
+        target = [self.page_sets[i][0].ideal_area for i in xrange(10)]
         expected = [1818, 1636, 1454, 1272, 1090, 909, 727, 545, 363, 181]
         self.assertEqual(target, expected)
 
-    def testPopTop1(self):
-        self.assertEqual(len(self.pages.page_sets), 10)
-        target = self.pages.pop_top_1()
-        self.assertEqual(self.pages.priority_sum(target), 10)
-        self.assertEqual(len(self.pages.page_sets), 9)
+    def testGetTop1(self):
+        target = pages.get_top_1(self.page_sets)
+        self.assertEqual(pages.priority_sum(target), 10)
 
     def testGroupingPageSet(self):
-        self.pages.grouping_page_sets()
-        self.assertEqual(len(self.pages.page_sets), 4)
+        self.page_sets = pages.grouping_page_sets(self.page_sets)
+        self.assertEqual(len(self.page_sets), 4)
 
     def testGetOptimumSet(self):
-        self.pages.set_ideal_area(100,100)
-        target = self.pages.get_optimum_set(Rect(0, 0, 20, 20))
-        self.assertEqual(self.pages.priority_sum(target), 2)
+        target = pages.get_optimum_set(self.page_sets,Rect(0, 0, 20, 20))
+        self.assertEqual(pages.priority_sum(target), 2)
+        self.page_sets = pages.grouping_page_sets(self.page_sets)
+        target = pages.get_optimum_set(self.page_sets, Rect(0, 0, 50, 50))
+        self.assertEqual(pages.priority_sum(target), 12)
 
-        self.pages.grouping_page_sets()
-        target = self.pages.get_optimum_set(Rect(0, 0, 50, 50))
-        self.assertEqual(self.pages.priority_sum(target), 12)
-
+WIDTH = 1024
+HEIGHT = 768
 
 class SimulationTest(unittest.TestCase):
+
     def setUp(self):
-        pages = Pages(DATA)
-        self.layout = simulation.Layout(pages)
+        self.layout = simulation.Layout(DATA)
 
     def testSetData(self):
-        target = self.layout.pages.page_sets[0][0].priority
+        target = self.layout.page_sets[0][0].priority
         self.assertEqual(target, 10)
 
 #     def testArrangeTopPage(self):
