@@ -47,13 +47,15 @@ class Pages:
         return cmp(sum([page.priority for page in x]),
                    sum([page.priority for page in y]))
 
-    def fix(self, page):
+    def fix(self, page_set):
         """
         Fixed pages set in fixed_pages[] from page_sets[]
         """
-        pass
+        self.page_sets.remove(page_set)
+        self.fixed_pages.append(page_set)
 
-    def get_top_1(self):
+
+    def pop_top_1(self):
         """
         Get page_set which have the highest priority
         """
@@ -61,6 +63,7 @@ class Pages:
         for page_set in self.page_sets:
             if not top or self.priority_sum(top) < self.priority_sum(page_set):
                 top = page_set
+        self.fix(top)
         return top
 
     def get_optimum_set(self, rect):

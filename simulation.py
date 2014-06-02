@@ -32,7 +32,7 @@ class Layout():
         self._arrange(self.pages, Rect(0, 0, WIDTH, HEIGHT))
 
     def arrange(self, pages, rect):
-        top = pages.get_top_1()
+        top = pages.pop_top_1()
         self._arrange_1(top)
 
 
@@ -45,7 +45,7 @@ class Layout():
             pass
 
         if len(rest) > 4:
-            top = pages.get_top_1()
+            top = pages.pop_top_1()
             self.arrange_1(rect, rest)
 
         else:

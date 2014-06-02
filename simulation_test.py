@@ -35,13 +35,14 @@ class PagesTest(unittest.TestCase):
         expected = [1818, 1636, 1454, 1272, 1090, 909, 727, 545, 363, 181]
         self.assertEqual(target, expected)
 
-    def testGetTop1(self):
-        target = self.pages.get_top_1()
+    def testPopTop1(self):
+        self.assertEqual(len(self.pages.page_sets), 10)
+        target = self.pages.pop_top_1()
         self.assertEqual(self.pages.priority_sum(target), 10)
+        self.assertEqual(len(self.pages.page_sets), 9)
 
     def testGroupingPageSet(self):
         self.pages.grouping_page_sets()
-        print self.pages.page_sets
         self.assertEqual(len(self.pages.page_sets), 4)
 
     def testGetOptimumSet(self):
@@ -56,21 +57,13 @@ class PagesTest(unittest.TestCase):
 
 class SimulationTest(unittest.TestCase):
     def setUp(self):
-        pass
-    #     pages = Pages(DATA)
-    #     self.layout = simulation.Layout(pages)
-    #
-    # def testSetData(self):
-    #     target = self.layout.pages.data['image'][0].priorities
-    #     self.assertEqual(target, [10])
+        pages = Pages(DATA)
+        self.layout = simulation.Layout(pages)
 
+    def testSetData(self):
+        target = self.layout.pages.page_sets[0][0].priority
+        self.assertEqual(target, 10)
 
-#
-#     def testSetIdealArea(self):
-#         self.layout._set_ideal_area()
-#         self.assertEqual(self.layout.data['image'][0].ideal_area, 28597)
-#         self.assertEqual(self.layout.data['text'][0].ideal_area, 14298)
-#
 #     def testArrangeTopPage(self):
 #         self.layout._set_ideal_area()
 #         target = self.layout._arrange_1(self.layout.data)
