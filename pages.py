@@ -22,6 +22,7 @@ def page_cmp(x, y):
     return cmp(sum([page.priority for page in x]),
                sum([page.priority for page in y]))
 
+
 def get_top_1(page_sets):
     """ Get page_set which have the first priority """
     top = None
@@ -44,6 +45,7 @@ def get_optimum_set(page_sets, rect):
             match = area_sum
 
     return optimum_set
+
 
 def set_ideal_area(page_sets, width, height):
     total_priority = sum([priority_sum(page_set)
