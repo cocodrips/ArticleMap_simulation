@@ -82,7 +82,10 @@ class SimulationTest(unittest.TestCase):
         self.assertEqual(page_sets[1].rect.vec4(), (100, 0, 100, 100))
 
         page_sets = [Page(4, 'image'), Page(6, 'image'), Page(8, 'image'),Page(10, 'image')]
-
+        page_sets = pages.init(page_sets, WIDTH, HEIGHT)
+        self.layout.arrange_vertical(page_sets, Rect(0,0, 300, 100))
+        self.assertEqual(page_sets[1].rect.vec4(), (75, 0, 75, 100))
+        
 
 
 
