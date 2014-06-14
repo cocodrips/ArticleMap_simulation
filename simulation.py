@@ -5,6 +5,8 @@ from rect_type import rect_types
 from squaretype import Page, Rect
 import types
 import pages
+from itertools import chain
+
 import copy
 
 import math
@@ -14,6 +16,7 @@ WIDTH = 1024
 HEIGHT = 768
 MIN_WIDTH = 100
 MIN_HEIGHT = 60
+ERROR = 10
 
 
 class Layout():
@@ -27,20 +30,37 @@ class Layout():
         canvas = Canvas(root, width=WIDTH, height=HEIGHT)
 
         self._arrange(self.page_sets, Rect(0, 0, WIDTH, HEIGHT), False)
+        # self._adjust_line(self.page_sets)
+
 
         for page_set in self.page_sets:
             page = page_set[0]
             if page.rect:
-                canvas.create_rectangle(page.rect.x, page.rect.y, page.rect.width, page.rect.height,
-                                        outline="#555", fill='#f00')
+                canvas.create_rectangle(page.rect.x, page.rect.y, page.rect.x + page.rect.width,
+                                        page.rect.y + page.rect.height,
+                                        outline="#555")
+                canvas.create_text(page.rect.x + page.rect.width / 2, page.rect.y + 10,
+                                   text=str(page.priority))
+                print page.priority, page.rect
         canvas.pack()
         root.mainloop()
+
+    def _adjust_line(self, page_sets):
+        l = list(chain.from_iterable(page_sets))
+        for i in xrange(len(l)):
+            for j in xrange(i+1, len(l)):
+                if abs(l[i].rect.x - l[j].rect.x) < 10:
+                    l[i].rect.x = l[j].rect.x = max(l[i].rect.x, l[j].rect.x)
+                if abs(l[i].rect.y - l[j].rect.y) < 10:
+                    l[i].rect.y = l[j].rect.y = max(l[i].rect.y, l[j].rect.y)
+
+
 
     def _arrange(self, page_sets, rect, is_grouped=True):
         """
         Args:
             page_sets: [[], [], []]
-            is_grouped (Boolean)
+            is_grouped (Boolean)d
         """
 
         if not page_sets:
@@ -55,7 +75,7 @@ class Layout():
 
         # [ , , ]
         else:
-            self.arrange_less_3(page_sets, rect)
+            self.arrange_pages(page_sets, rect)
 
 
     def arrange_top_1(self, page_sets, rect, is_grouped):
@@ -86,28 +106,15 @@ class Layout():
 
         self._arrange(page_sets, rect_right)
 
-    def arrange_less_3(self, page_sets, rect, ):
+    def arrange_less_3(self, page_sets, rect):
         """
         Args:
             page_sets: [[],[],[]] or [ , , ]
         """
-        self.arrange_vertical(page_sets, rect)
-
-        # length = len(page_sets)
-        #
-        # horizontal = (rect.width / length) / float(rect.height)
-        # vertical = rect.width / float(rect.height / length)
-        #
-        # aspect = None
-        # [[], [], []]
-        # if type(page_sets[0]) == types.ListType:
-        #     aspect = rect_types[page_sets[0][0].type]
-        #     self.arrange_vertical(page_sets, rect)
-        #
-        #     # [ , , ]
-        # else:
-        #     aspect = rect_types[page_sets[0][0].type]
-        #     self.arrange_vertical(page_sets, rect)
+        if rect.height < rect.width:
+            self.arrange_vertical(page_sets, rect)
+        else:
+            self.arrange_horizontal(page_sets, rect)
 
     def get_optimum_sets(self, page_sets, rect):
         selected = pages.get_optimum_set(page_sets, rect)
@@ -116,22 +123,54 @@ class Layout():
 
 
     def arrange_vertical(self, page_sets, rect):
-        length = len(page_sets)
-        width = rect.width / length
-
-        if type(page_sets[0]) == types.ListType:
-            for i in xrange(length):
-                pages_rect = Rect(rect.x + width * i, rect.y, width, rect.height)
-                self._arrange(page_sets[i], pages_rect)
-
-        else:
-            for i in xrange(length):
-                page_sets[i].rect = Rect(rect.x + width * i, rect.y, width, rect.height)
-                # fin
+        self.arrange_horizontal(page_sets, rect)
+        # length = len(page_sets)
+        # width = rect.width / length
+        #
+        # if type(page_sets[0]) == types.ListType:
+        #     for i in xrange(length):
+        #         pages_rect = Rect(rect.x + width * i, rect.y, width, rect.height)
+        #         self._arrange(page_sets[i], pages_rect)
+        #
+        # else:
+        #     for i in xrange(length):
+        #         page_sets[i].rect = Rect(rect.x + width * i, rect.y, width, rect.height)
+        #         # fin
 
 
     def arrange_horizontal(self, page_sets, rect):
-        pass
+        sets_priority_sum = pages.priority_sum(page_sets)
+        last_y = rect.y
+        for page_set in page_sets:
+            priority_ratio = 1.0 * pages.priority_sum(page_set) / sets_priority_sum
+            height = rect.height * priority_ratio
+            new_rect = Rect(rect.x, last_y, rect.width, height)
+            last_y += height
+
+            if self.is_group(page_set):
+                self._arrange(page_set, new_rect)
+            else:
+                page_set.rect = new_rect
+
+    def arrange_pages(self, page_set, rect):
+        if rect.width < rect.height:
+            self.arrange_pages_vertical(page_set, rect)
+        else:
+            self.arrange_pages_horizontal(page_set, rect)
+
+
+    def arrange_pages_vertical(self, page_set, rect):
+        height = rect.height / len(page_set)
+
+        for i, page in enumerate(page_set):
+            page.rect = Rect(rect.x, rect.y + height * i, rect.width, height)
+
+    def arrange_pages_horizontal(self, page_set, rect):
+        width = rect.width / len(page_set)
+
+        for i, page in enumerate(page_set):
+            page.rect = Rect(rect.x + width * i, rect.y, width, rect.height)
+
 
     #TODO: Naming
     def set_optimum(self, page_sets, rect):
@@ -142,126 +181,43 @@ class Layout():
     def arrange_1(self, rect, page):
         page.rect = rect
 
-
-    def new_sets(self, page_sets, page_set):
+    def new_sets(self, page_sets, target_page):
         new_sets = []
         for page_set in page_sets:
-            if page_set != page_set:
+            if page_set != target_page:
                 new_sets.append(page_set)
         return new_sets
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        #
-        #
-        #
-        # def _arrange(self, rect, rest):
-        #     if len(rest) == 0:
-        #         return
-        #
-        #     if len(rest) == 1:
-        #         pass
-        #
-        #     if len(rest) > 4:
-        #         top = pages.pop_top_1()
-        #         self.arrange_1(rect, rest)
-        #
-        #     else:
-        #         self.arrange_horizontal(rect, rest)
-        #         self.arrange_vertical(rect, rest)
-        #
-        # def _arrange_1(self, rest, rect):
-        #     """
-        #     1. 左上に配置する
-        #     2. 右の残りスペースがMIN_WIDTH以下だったらたてにのばす
-        #     3. 下の残りのスペースがMIN_HEIGHT以下だった場合に面積を小さくする
-        #     4. 配置する
-        #     """
-        #
-        #     top = self._arrange_top_pages(rest, rect)
-        #
-        #     rect_under = Rect(rect.x, rect.y + top.rect.height,
-        #                       top.rect.width, rect.height - top.rect.height)
-        #     rect_right = Rect(rect.x, rect.y + top.rect.height,
-        #                       top.rect.width, rect.height - top.rect.height)
-        #
-        #
-        #
-        #
-        #
-        #     self._arrange()
-        #
-        #
-        # def _set_page(self, data, rect):
-        #     if not data['image'] and not data['text']:
-        #         return False
-        #
-        #     # Extract top page
-        #     # TODO: Change data structure
-        #     if data['image']:
-        #         top = data['image'].pop()
-        #     else:
-        #         top = data['text'].pop()
-        #
-        #     type = top.rect_type[0]
-        #     height = int(math.sqrt(top.ideal_area / type.ratio))
-        #     width = int(type.ratio * height)
-        #     top.rect = Rect(rect.x, rect.y, width, height)
-        #     return top
-        #
-        #
-        # def arrange_horizontal(self, rect, data):
-        #     width = rect.width / len(data)
-        #     for i in xrange(len(data)):
-        #         data[i].rect = Rect(rect.x + width * i, rect.y, width, rect.height)
-        #     self.arrange(rect, 0)
-        #
-        #
-        # def arrange_vertical(self, rect, data):
-        #     pass
-        #
-        # def set_area(self, rect, ):
-        #
-        #     pass
-        #
+    def is_group(self, page_sets):
+        return type(page_sets) == types.ListType
 
 
 if __name__ == '__main__':
+    # DATA = [
+    #     Page(4, 'image'),
+    #     Page(8, 'image'),
+    #     Page(6, 'image'),
+    #     Page(10, 'image'),
+    #     Page(2, 'image'),
+    #     Page(9, 'text'),
+    #     Page(7, 'text'),
+    #     Page(5, 'text'),
+    #     Page(3, 'text'),
+    #     Page(1, 'text'),
+    # ]
+
     DATA = [
         Page(4, 'image'),
         Page(8, 'image'),
         Page(6, 'image'),
-        Page(10, 'image'),
-        Page(2, 'image'),
+        Page(11, 'image'),
+        Page(5, 'image'),
         Page(9, 'text'),
         Page(7, 'text'),
         Page(5, 'text'),
         Page(3, 'text'),
         Page(1, 'text'),
-    ]
+        ]
 
     layout = Layout(DATA, WIDTH, HEIGHT)
     layout.show_window()

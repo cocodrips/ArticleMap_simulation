@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from rect_type import rect_types
-
+import types
 
 def init(page_sets, width, height):
     page_sets = [[d] for d in page_sets]
@@ -10,9 +10,14 @@ def init(page_sets, width, height):
     return page_sets
 
 
-def priority_sum(page_set):
-    return sum([page.priority for page in page_set])
+def priority_sum(page_sets):
+    if is_group(page_sets[0]):
+        return sum([sum([page.priority for page in page_set]) for page_set in page_sets])
+    return sum([page.priority for page in page_sets])
 
+
+def is_group(page_set):
+    return type(page_set) == types.ListType
 
 def ideal_area_sum(page_set):
     return sum([page.ideal_area for page in page_set])
@@ -62,6 +67,9 @@ def grouping_page_sets(page_sets):
     groups = []
     for key in rect_types.keys():
         pages = [page_set for page_set in page_sets if page_set[0].type == key]
+
+        if not pages:
+            continue
 
         if len(pages) < 2:
             # TODO: typeのpagesの数が2以下の場合どうする？
