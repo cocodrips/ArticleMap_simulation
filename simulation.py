@@ -29,7 +29,7 @@ class Layout():
         root = Tk()
         canvas = Canvas(root, width=WIDTH, height=HEIGHT)
 
-        self._arrange(self.page_sets, Rect(0, 0, WIDTH, HEIGHT), False)
+        self._arrange(self.page_sets, Rect(2, 2, WIDTH, HEIGHT), False)
         # self._adjust_line(self.page_sets)
 
 
@@ -75,7 +75,10 @@ class Layout():
 
         # [ , , ]
         else:
+            # TODO: ?
+            page_sets.sort(key=lambda x: x.priority, reverse=True)
             self.arrange_pages(page_sets, rect)
+
 
 
     def arrange_top_1(self, page_sets, rect, is_grouped):
@@ -83,12 +86,24 @@ class Layout():
 
         top_rect = None
         for type in rect_types[top[0].type]:
+
+            # yoko
             height = int(math.sqrt(pages.ideal_area_sum(top) / type.ratio))
             width = int(type.ratio * height)
             if rect.height - height >= MIN_HEIGHT:
                 top_rect = Rect(rect.x, rect.y, width, height)
                 self._arrange(top, top_rect)
                 break
+
+            # tate
+            height = int(math.sqrt(pages.ideal_area_sum(top) / (type.ratio / len(top))))
+            width = int(pages.ideal_area_sum(top) / height)
+            if rect.height - height >= MIN_HEIGHT:
+                top_rect = Rect(rect.x, rect.y, width, height)
+                self._arrange(top, top_rect)
+                break
+
+
         else:
             raise Warning
 
@@ -96,6 +111,7 @@ class Layout():
 
         if not is_grouped:
             page_sets = pages.grouping_page_sets(page_sets)
+            page_sets.sort(cmp=pages.page_cmp, reverse=True)
         rect_under = Rect(rect.x, rect.y + top_rect.height,
                           top_rect.width, rect.height - top_rect.height)
 
@@ -123,20 +139,18 @@ class Layout():
 
 
     def arrange_vertical(self, page_sets, rect):
-        self.arrange_horizontal(page_sets, rect)
-        # length = len(page_sets)
-        # width = rect.width / length
-        #
-        # if type(page_sets[0]) == types.ListType:
-        #     for i in xrange(length):
-        #         pages_rect = Rect(rect.x + width * i, rect.y, width, rect.height)
-        #         self._arrange(page_sets[i], pages_rect)
-        #
-        # else:
-        #     for i in xrange(length):
-        #         page_sets[i].rect = Rect(rect.x + width * i, rect.y, width, rect.height)
-        #         # fin
+        sets_priority_sum = pages.priority_sum(page_sets)
+        last_x = rect.x
+        for page_set in page_sets:
+            priority_ratio = 1.0 * pages.priority_sum(page_set) / sets_priority_sum
+            width = rect.width * priority_ratio
+            new_rect = Rect(last_x, rect.y, width, rect.height)
+            last_x += width
 
+            if self.is_group(page_set):
+                self._arrange(page_set, new_rect)
+            else:
+                page_set.rect = new_rect
 
     def arrange_horizontal(self, page_sets, rect):
         sets_priority_sum = pages.priority_sum(page_sets)
@@ -153,7 +167,17 @@ class Layout():
                 page_set.rect = new_rect
 
     def arrange_pages(self, page_set, rect):
-        if rect.width < rect.height:
+        length = len(page_set)
+        # TODO: Write devide algorithm
+
+        ideal_ratio = rect_types[page_set[0].type][0].ratio
+        rect_ratio = float(rect.width) / rect.height
+
+        print 'yoko',(rect_ratio / len(page_set) - ideal_ratio)
+        print 'tate',  (rect_ratio * len(page_set) - ideal_ratio)
+        if (abs(1 - (rect_ratio / len(page_set) - ideal_ratio))
+            > abs(1 - (rect_ratio * len(page_set) - ideal_ratio))):
+            print page_set
             self.arrange_pages_vertical(page_set, rect)
         else:
             self.arrange_pages_horizontal(page_set, rect)
@@ -193,31 +217,38 @@ class Layout():
 
 
 if __name__ == '__main__':
-    # DATA = [
-    #     Page(4, 'image'),
-    #     Page(8, 'image'),
-    #     Page(6, 'image'),
-    #     Page(10, 'image'),
-    #     Page(2, 'image'),
-    #     Page(9, 'text'),
-    #     Page(7, 'text'),
-    #     Page(5, 'text'),
-    #     Page(3, 'text'),
-    #     Page(1, 'text'),
-    # ]
-
     DATA = [
         Page(4, 'image'),
         Page(8, 'image'),
         Page(6, 'image'),
-        Page(11, 'image'),
-        Page(5, 'image'),
+        Page(10, 'image'),
+        Page(12, 'image'),
+        Page(2, 'image'),
+        Page(11, 'text'),
         Page(9, 'text'),
         Page(7, 'text'),
         Page(5, 'text'),
         Page(3, 'text'),
         Page(1, 'text'),
-        ]
+    ]
+
+    # DATA = [
+    #     Page(4, 'image'),
+    #     Page(8, 'image'),
+    #     Page(6, 'image'),
+    #     Page(11, 'image'),
+    #     Page(5, 'image'),
+    #     Page(9, 'text'),
+    #     Page(1, 'text'),
+    #     Page(5, 'text'),
+    #     Page(30, 'text'),
+    #     Page(10, 'text'),
+    #     Page(9, 'text'),
+    #     Page(1, 'text'),
+    #     Page(5, 'text'),
+    #     Page(30, 'text'),
+    #     Page(10, 'text'),
+    #     ]
 
     layout = Layout(DATA, WIDTH, HEIGHT)
     layout.show_window()
