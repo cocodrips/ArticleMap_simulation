@@ -54,8 +54,8 @@ class PagesTest(unittest.TestCase):
         target = pages.get_optimum_set(self.page_sets, Rect(0, 0, 20, 20))
         self.assertEqual(pages.priority_sum(target), 2)
         self.page_sets = pages.grouping_page_sets(self.page_sets)
-        target = pages.get_optimum_set(self.page_sets, Rect(0, 0, 50, 50))
-        self.assertEqual(pages.priority_sum(target), 12)
+        target = pages.get_optimum_set(self.page_sets, Rect(0, 0, 80, 80))
+        self.assertEqual(pages.priority_sum(target), 34)
 
 
 WIDTH = 1024
@@ -79,15 +79,16 @@ class SimulationTest(unittest.TestCase):
                          (396, 360))
 
     def testArrangeVertical(self):
-        pass
-        # page_sets = [Page(4, 'image'), Page(8, 'image'), Page(6, 'image')]
-        # self.layout.arrange_vertical(page_sets, Rect(0,0, 300, 100))
-        # self.assertEqual(page_sets[1].rect.vec4(), (100, 0, 100, 100))
-        #
+        page_sets = [Page(4, 'image'), Page(8, 'image'), Page(6, 'image')]
+        self.layout.arrange_vertical(page_sets, Rect(0,0, 300, 100))
+        print [page.rect.vec4 for page in page_sets]
+
+        self.assertEqual(page_sets[1].rect.vec4(), (100, 0, 100, 100))
         # #group
-        # page_sets = [Page(4, 'image'), Page(6, 'image'), Page(8, 'image'),Page(10, 'image')]
-        # page_sets = pages.init(page_sets, WIDTH, HEIGHT)
-        # page_sets = pages.grouping_page_sets(page_sets)
+        page_sets = [Page(4, 'image'), Page(6, 'image'), Page(8, 'image'),Page(10, 'image')]
+        page_sets = pages.init(page_sets, WIDTH, HEIGHT)
+        page_sets = pages.grouping_page_sets(page_sets)
+        print [page for page in page_sets]
         # self.layout.arrange_vertical(page_sets, Rect(0,0, 300, 100))
         # self.assertEqual(page_sets[0][1].rect.vec4(), (75, 0, 75, 100))
 

@@ -16,7 +16,7 @@ class Rect:
         return (self.x, self.y, self.width, self.height)
 
     def __repr__(self):
-        return unicode("<{}, {}, {}, {}>".format(self.x, self.y, self.width, self.height))
+        return unicode("[{}, {}, {}, {}]".format(self.x, self.y, self.width, self.height))
 
 
 class Page:
@@ -30,4 +30,6 @@ class Page:
         self.type = string
 
     def __repr__(self):
-        return unicode("<Page priority:{0}>".format(self.priority))
+        # return unicode("<Page priority:{0}>".format(self.priority))
+        return unicode("<{0}>".format(self.priority))
+

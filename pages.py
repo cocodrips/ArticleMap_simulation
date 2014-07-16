@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from rect_type import rect_types
 import types
+import itertools
+import types
 
 def init(page_sets, width, height):
     page_sets = [[d] for d in page_sets]
@@ -11,9 +13,11 @@ def init(page_sets, width, height):
 
 
 def priority_sum(page_sets):
-    if is_group(page_sets[0]):
-        return sum([sum([page.priority for page in page_set]) for page_set in page_sets])
-    return sum([page.priority for page in page_sets])
+    if is_group(page_sets):
+        if is_group(page_sets[0]):
+            return sum([sum([page.priority for page in page_set]) for page_set in page_sets])
+        return sum([page.priority for page in page_sets])
+    return page_sets.priority
 
 
 def is_group(page_set):
@@ -24,8 +28,8 @@ def ideal_area_sum(page_set):
 
 
 def page_cmp(x, y):
-    return cmp(sum([page.priority for page in x]),
-               sum([page.priority for page in y]))
+    return cmp(sum([page.priority for page in x]) / len(x),
+               sum([page.priority for page in y]) / len(y))
 
 
 def get_top_1(page_sets):
@@ -49,6 +53,14 @@ def get_optimum_set(page_sets, rect):
             optimum_set = page_set
             match = area_sum
 
+    for a, b in itertools.combinations(page_sets, 2):
+        #TODO
+        area_sum = sum([page.ideal_area for page in a])
+        area_sum += sum([page.ideal_area for page in b])
+
+        if abs(s - area_sum) < abs(s - match):
+            optimum_set = [a, b]
+            match = area_sum
     return optimum_set
 
 
@@ -82,3 +94,12 @@ def grouping_page_sets(page_sets):
             else:
                 groups[-1] += pages[i]
     return groups
+
+def flatten(arrays):
+    if type(arrays) == types.ListType:
+        flat = []
+        for array in arrays:
+            flat += flatten(array)
+        return flat
+    else:
+        return arrays

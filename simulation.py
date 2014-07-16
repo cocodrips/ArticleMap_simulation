@@ -12,9 +12,11 @@ import copy
 import math
 
 MARGIN = 5
-WIDTH = 1024
-HEIGHT = 768
-MIN_WIDTH = 100
+# WIDTH = 1026
+# HEIGHT = 768
+WIDTH = 1000
+HEIGHT = 600
+MIN_WIDTH = 200
 MIN_HEIGHT = 60
 ERROR = 10
 
@@ -29,7 +31,7 @@ class Layout():
         root = Tk()
         canvas = Canvas(root, width=WIDTH, height=HEIGHT)
 
-        self._arrange(self.page_sets, Rect(2, 2, WIDTH, HEIGHT), False)
+        self._arrange(self.page_sets, Rect(0, 0, WIDTH, HEIGHT), False)
         # self._adjust_line(self.page_sets)
 
 
@@ -38,10 +40,10 @@ class Layout():
             if page.rect:
                 canvas.create_rectangle(page.rect.x, page.rect.y, page.rect.x + page.rect.width,
                                         page.rect.y + page.rect.height,
-                                        outline="#555")
-                canvas.create_text(page.rect.x + page.rect.width / 2, page.rect.y + 10,
-                                   text=str(page.priority))
-                print page.priority, page.rect
+                                        outline="#555", width=5.0)
+                canvas.create_text(page.rect.x + page.rect.width / 2, page.rect.y + 20,
+                                   text=str(page.priority),  font="Arial 32")
+                print page.rect, ','
         canvas.pack()
         root.mainloop()
 
@@ -112,10 +114,11 @@ class Layout():
         if not is_grouped:
             page_sets = pages.grouping_page_sets(page_sets)
             page_sets.sort(cmp=pages.page_cmp, reverse=True)
+
         rect_under = Rect(rect.x, rect.y + top_rect.height,
                           top_rect.width, rect.height - top_rect.height)
 
-        page_sets = self.get_optimum_sets(page_sets, rect_under)
+        page_sets = self.set_optimum_sets(page_sets, rect_under)
 
         rect_right = Rect(rect.x + top_rect.width, rect.y,
                           rect.width - top_rect.width, rect.height)
@@ -132,8 +135,9 @@ class Layout():
         else:
             self.arrange_horizontal(page_sets, rect)
 
-    def get_optimum_sets(self, page_sets, rect):
+    def set_optimum_sets(self, page_sets, rect):
         selected = pages.get_optimum_set(page_sets, rect)
+        print rect, selected
         self._arrange(selected, rect)
         return self.new_sets(page_sets, selected)
 
@@ -173,11 +177,8 @@ class Layout():
         ideal_ratio = rect_types[page_set[0].type][0].ratio
         rect_ratio = float(rect.width) / rect.height
 
-        print 'yoko',(rect_ratio / len(page_set) - ideal_ratio)
-        print 'tate',  (rect_ratio * len(page_set) - ideal_ratio)
-        if (abs(1 - (rect_ratio / len(page_set) - ideal_ratio))
-            > abs(1 - (rect_ratio * len(page_set) - ideal_ratio))):
-            print page_set
+        if (abs(1 - (rect_ratio / length - ideal_ratio))
+            > abs(1 - (rect_ratio * length - ideal_ratio))):
             self.arrange_pages_vertical(page_set, rect)
         else:
             self.arrange_pages_horizontal(page_set, rect)
@@ -206,10 +207,21 @@ class Layout():
         page.rect = rect
 
     def new_sets(self, page_sets, target_page):
+
+        # グループはグループごと撤退
+
         new_sets = []
+        if type(target_page[0]) != types.ListType:
+            target_page = [target_page]
+        # pdb.set_trace()
+        # print chain.from_iterable(target_page)
+        target_page = list(chain.from_iterable(target_page))
+        # print target_page
+
         for page_set in page_sets:
-            if page_set != target_page:
+            if page_set not in target_page:
                 new_sets.append(page_set)
+        print page_sets, new_sets
         return new_sets
 
     def is_group(self, page_sets):
@@ -217,27 +229,26 @@ class Layout():
 
 
 if __name__ == '__main__':
-    DATA = [
-        Page(4, 'image'),
-        Page(8, 'image'),
-        Page(6, 'image'),
-        Page(10, 'image'),
-        Page(12, 'image'),
-        Page(2, 'image'),
-        Page(11, 'text'),
-        Page(9, 'text'),
-        Page(7, 'text'),
-        Page(5, 'text'),
-        Page(3, 'text'),
-        Page(1, 'text'),
-    ]
-
     # DATA = [
     #     Page(4, 'image'),
     #     Page(8, 'image'),
     #     Page(6, 'image'),
-    #     Page(11, 'image'),
+    #     Page(10, 'image'),
+    #     Page(4, 'image'),
+    #     # Page(11, 'text'),
+    #     Page(9, 'text'),
+    #     Page(7, 'text'),
+    #     Page(5, 'text'),
+    #     Page(3, 'text'),
+    #     Page(3, 'text'),
+    # ]
+
+    # DATA = [
+    #     Page(4, 'image'),
     #     Page(5, 'image'),
+    #     Page(6, 'image'),
+    #     Page(8, 'image'),
+    #     Page(11, 'image'),
     #     Page(9, 'text'),
     #     Page(1, 'text'),
     #     Page(5, 'text'),
@@ -250,6 +261,25 @@ if __name__ == '__main__':
     #     Page(10, 'text'),
     #     ]
 
+    DATA = [
+        Page(3, 'image'),
+        Page(5, 'image'),
+        Page(7, 'image'),
+        Page(11, 'image'),
+        Page(15, 'image'),
+
+        Page(30, 'text'),
+        Page(10, 'text'),
+        Page(10, 'text'),
+        Page(12, 'text'),
+        Page(12, 'text'),
+        Page(8, 'text'),
+        Page(8, 'text'),
+        Page(6, 'text'),
+        Page(4, 'text'),
+
+        Page(2, 'text'),
+        ]
+
     layout = Layout(DATA, WIDTH, HEIGHT)
     layout.show_window()
-    print 'hoge'
