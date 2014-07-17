@@ -12,6 +12,8 @@ def init(page_sets, width, height):
 
 
 def priority_sum(page_sets):
+    if not is_group(page_sets):
+        return page_sets.priority
     if is_group(page_sets[0]):
         return sum([sum([page.priority for page in page_set]) for page_set in page_sets])
     return sum([page.priority for page in page_sets])
@@ -39,7 +41,7 @@ def get_top_1(page_sets):
 
 
 def get_optimum_set(page_sets, rect):
-    # TODO: 組み合わせも可にする
+    # TODO: 2つ以上の組み合わせも可にする
     s = rect.width * rect.height
 
     match = 0
@@ -51,7 +53,6 @@ def get_optimum_set(page_sets, rect):
             match = area_sum
 
     for a, b in itertools.combinations(page_sets, 2):
-        #TODO
         area_sum = sum([page.ideal_area for page in a])
         area_sum += sum([page.ideal_area for page in b])
 

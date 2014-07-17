@@ -79,28 +79,21 @@ class SimulationTest(unittest.TestCase):
                          (396, 360))
 
     def testArrangeVertical(self):
-        pass
-        # page_sets = [Page(4, 'image'), Page(8, 'image'), Page(6, 'image')]
-        # self.layout.arrange_vertical(page_sets, Rect(0,0, 300, 100))
-        # self.assertEqual(page_sets[1].rect.vec4(), (100, 0, 100, 100))
-        #
+        page_sets = [Page(4, 'image'), Page(8, 'image'), Page(6, 'image')]
+        self.layout.arrange_vertical(page_sets, Rect(0,0, 300, 100))
+        self.assertEqual(page_sets[1].rect.vec4(), (66.66666666666666, 0, 133.33333333333331, 100))
+
         # #group
-        # page_sets = [Page(4, 'image'), Page(6, 'image'), Page(8, 'image'),Page(10, 'image')]
-        # page_sets = pages.init(page_sets, WIDTH, HEIGHT)
-        # page_sets = pages.grouping_page_sets(page_sets)
-        # self.layout.arrange_vertical(page_sets, Rect(0,0, 300, 100))
-        # self.assertEqual(page_sets[0][1].rect.vec4(), (75, 0, 75, 100))
+        page_sets = [Page(4, 'image'), Page(6, 'image'), Page(8, 'image'),Page(10, 'image')]
+        page_sets = pages.init(page_sets, WIDTH, HEIGHT)
+        page_sets = pages.grouping_page_sets(page_sets)
+        self.layout.arrange_vertical(page_sets, Rect(0,0, 300, 100))
+        self.assertEqual(page_sets[0][1].rect.vec4(), (96.42857142857143, 0, 96.42857142857143, 100))
 
     def testArrangeHorizontal(self):
         page_sets = [Page(4, 'image'), Page(8, 'image'), Page(6, 'image')]
         self.layout.arrange_horizontal(page_sets, Rect(0,0, 100, 300))
-        # self.assertEqual(page_sets[1].rect.vec4(), (0, 100, 100, 100))
-        for pages in page_sets:
-            print pages.rect
-
-
-
-
+        self.assertEqual(page_sets[1].rect.vec4(), (0, 66.66666666666666, 100, 133.33333333333331))
 
 
 if __name__ == '__main__':
