@@ -2,19 +2,16 @@
 from Tkinter import Canvas, Tk
 from squaretype import Rect
 from rect_type import rect_types
-from squaretype import Page, Rect
+from squaretype import Page
+from itertools import chain
 import types
 import pages
-from itertools import chain
-
-import copy
-
 import math
 
 MARGIN = 5
 WIDTH = 1024
 HEIGHT = 768
-MIN_WIDTH = 100
+MIN_WIDTH = 200
 MIN_HEIGHT = 60
 ERROR = 10
 
@@ -41,7 +38,6 @@ class Layout():
                                         outline="#555")
                 canvas.create_text(page.rect.x + page.rect.width / 2, page.rect.y + 10,
                                    text=str(page.priority))
-                print page.priority, page.rect
         canvas.pack()
         root.mainloop()
 
@@ -86,7 +82,6 @@ class Layout():
 
         top_rect = None
         for type in rect_types[top[0].type]:
-
             # yoko
             height = int(math.sqrt(pages.ideal_area_sum(top) / type.ratio))
             width = int(type.ratio * height)
@@ -103,7 +98,6 @@ class Layout():
                 self._arrange(top, top_rect)
                 break
 
-
         else:
             raise Warning
 
@@ -115,7 +109,7 @@ class Layout():
         rect_under = Rect(rect.x, rect.y + top_rect.height,
                           top_rect.width, rect.height - top_rect.height)
 
-        page_sets = self.get_optimum_sets(page_sets, rect_under)
+        page_sets = self.set_optimum_sets(page_sets, rect_under)
 
         rect_right = Rect(rect.x + top_rect.width, rect.y,
                           rect.width - top_rect.width, rect.height)
@@ -132,7 +126,7 @@ class Layout():
         else:
             self.arrange_horizontal(page_sets, rect)
 
-    def get_optimum_sets(self, page_sets, rect):
+    def set_optimum_sets(self, page_sets, rect):
         selected = pages.get_optimum_set(page_sets, rect)
         self._arrange(selected, rect)
         return self.new_sets(page_sets, selected)
@@ -147,7 +141,7 @@ class Layout():
             new_rect = Rect(last_x, rect.y, width, rect.height)
             last_x += width
 
-            if self.is_group(page_set):
+            if pages.is_group(page_set):
                 self._arrange(page_set, new_rect)
             else:
                 page_set.rect = new_rect
@@ -161,7 +155,7 @@ class Layout():
             new_rect = Rect(rect.x, last_y, rect.width, height)
             last_y += height
 
-            if self.is_group(page_set):
+            if pages.is_group(page_set):
                 self._arrange(page_set, new_rect)
             else:
                 page_set.rect = new_rect
@@ -173,11 +167,8 @@ class Layout():
         ideal_ratio = rect_types[page_set[0].type][0].ratio
         rect_ratio = float(rect.width) / rect.height
 
-        print 'yoko',(rect_ratio / len(page_set) - ideal_ratio)
-        print 'tate',  (rect_ratio * len(page_set) - ideal_ratio)
         if (abs(1 - (rect_ratio / len(page_set) - ideal_ratio))
             > abs(1 - (rect_ratio * len(page_set) - ideal_ratio))):
-            print page_set
             self.arrange_pages_vertical(page_set, rect)
         else:
             self.arrange_pages_horizontal(page_set, rect)
@@ -196,21 +187,22 @@ class Layout():
             page.rect = Rect(rect.x + width * i, rect.y, width, rect.height)
 
 
-    #TODO: Naming
-    def set_optimum(self, page_sets, rect):
-        optimum_set = pages.get_optimum_set(page_sets, rect)
-        self._arrange(optimum_set, rect)
-
-
     def arrange_1(self, rect, page):
         page.rect = rect
 
     def new_sets(self, page_sets, target_page):
-        new_sets = []
+        new_set = []
         for page_set in page_sets:
-            if page_set != target_page:
-                new_sets.append(page_set)
-        return new_sets
+            if pages.is_group(target_page[0]):
+                for t in target_page:
+                    if pages.page_in(page_set, t):
+                        break
+                else:
+                    new_set.append(page_set)
+            else:
+                if not pages.page_in(page_set, target_page):
+                    new_set.append(page_set)
+        return new_set
 
     def is_group(self, page_sets):
         return type(page_sets) == types.ListType
@@ -252,4 +244,3 @@ if __name__ == '__main__':
 
     layout = Layout(DATA, WIDTH, HEIGHT)
     layout.show_window()
-    print 'hoge'
