@@ -31,3 +31,8 @@ class Page:
 
     def __repr__(self):
         return unicode("<Page priority:{0}>".format(self.priority))
+
+    def __eq__(self, target):
+        if isinstance(target, Page):
+            return self.priority == target.priority
+        return False
